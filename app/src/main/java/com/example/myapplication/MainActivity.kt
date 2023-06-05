@@ -1,37 +1,76 @@
 package com.example.myapplication
 
+import android.animation.AnimatorSet
+import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
+import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Toast
-import androidx.recyclerview.widget.LinearLayoutManager
+import android.os.Handler
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.AnimationSet
+import android.view.animation.ScaleAnimation
+import android.widget.ImageView
+import android.widget.TextView
+import androidx.core.animation.doOnEnd
 
-import androidx.recyclerview.widget.RecyclerView
+class MainActivity : AppCompatActivity() {
+    private val splashDelay: Long = 3000 // Delay in milliseconds
 
-
-class MainActivity : AppCompatActivity(), NewsItemClicked {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_splash)
 
-        var recyclerView: RecyclerView =findViewById(R.id.recyclerview)
-        recyclerView.layoutManager=LinearLayoutManager(this)
-        val item=fetchdata()
-        val adapter=NewsListAdapter(item,this)
-        recyclerView.adapter=adapter
+        /* <----text animator---->   */
+        val textView = findViewById<TextView>(R.id.textvieww)
 
-    }
-    private  fun fetchdata():ArrayList<String>
-    {
-        val list=ArrayList<String>()
+        val fadeInAnimator = ObjectAnimator.ofFloat(textView, "alpha", 0f, 1f)
+        fadeInAnimator.duration = 1000
 
-            for (i in 0 until 100)
+        val slideUpAnimator = ObjectAnimator.ofFloat(textView, "translationY", 100f, 0f)
+        slideUpAnimator.duration = 2500
+
+        val animatoSet = AnimatorSet()
+        animatoSet.playTogether(fadeInAnimator, slideUpAnimator)
+        animatoSet.start()
+
+
+        /* <----logo animator---->*/
+        val logoImageView = findViewById<ImageView>(R.id.logoImageView)
+
+        val zoomInAnimator = ObjectAnimator.ofPropertyValuesHolder(
+            logoImageView,
+            PropertyValuesHolder.ofFloat("scaleX", 1.0f, 1.3f),
+            PropertyValuesHolder.ofFloat("scaleY", 1.0f, 1.3f)
+        )
+
+        zoomInAnimator.duration = 1500
+        zoomInAnimator.interpolator = AccelerateDecelerateInterpolator()
+
+        val zoomOutAnimator = ObjectAnimator.ofPropertyValuesHolder(
+            logoImageView,
+            PropertyValuesHolder.ofFloat("scaleX", 1.3f, 1.0f),
+            PropertyValuesHolder.ofFloat("scaleY", 1.3f, 1.0f)
+        )
+
+        zoomOutAnimator.duration = 1500
+        zoomOutAnimator.interpolator = AccelerateDecelerateInterpolator()
+
+        val animatorSet = AnimatorSet()
+        animatorSet.playSequentially(zoomInAnimator, zoomOutAnimator)
+        animatorSet.doOnEnd {
+            animatorSet.start() // Restart the animation when it ends
+        }
+        animatorSet.start()
+
+        /* delay handler*/
+        Handler().postDelayed(
             {
-                list.add("items $i")
-            }
-        return list
-    }
-
-    override fun onItemClicked(item: String) {
-        Toast.makeText(this,"Item clicked is $item",Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, MainActivity2::class.java)
+                startActivity(intent)
+                finish()
+            },
+            splashDelay
+        )
     }
 }
